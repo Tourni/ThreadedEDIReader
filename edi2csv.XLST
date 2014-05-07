@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+	<xsl:output method="text"/>
+	<xsl:template match ="/">
+	
+	<!-- Store the date -->	
+	<xsl:variable name="date"><xsl:value-of select="JLEDI/UNB/UNDA-3/UNDA-1-4"/></xsl:variable>		
+	<!-- Convert the date String-->
+	<xsl:variable name="fdate"><xsl:value-of select="concat(substring($date,5,2), '/', substring($date,3,2), '/', substring($date,1,2))"/></xsl:variable>
+		
+		<!-- Create CSV HEADINGS -->
+		<xsl:text>DATE</xsl:text> 			<xsl:text>,</xsl:text>
+		<xsl:text>ANA</xsl:text>			<xsl:text>,</xsl:text>
+		<xsl:text>LINE_ID</xsl:text>		<xsl:text>,</xsl:text>
+		<xsl:text>EAN</xsl:text>			<xsl:text>,</xsl:text>
+		<xsl:text>PARITY</xsl:text>			<xsl:text>,</xsl:text>
+		<xsl:text>SALE_QTY</xsl:text>		<xsl:text>,</xsl:text>
+		<xsl:text>SALE_PRICE</xsl:text>		<xsl:text>,</xsl:text>
+		<xsl:text>RETURN_QTY</xsl:text>		<xsl:text>,</xsl:text>
+		<xsl:text>RETURN_PRICE</xsl:text>	<xsl:text>&#10;</xsl:text> 
+		
+		<!-- For each location -->
+		<xsl:for-each select="JLEDI/Location">
+			
+			<!-- get the location code --> 
+			<xsl:variable name="ANA"><xsl:value-of select="LOC/LOC/ANA"/></xsl:variable>
+			
+			<!--for each line -->
+			<xsl:for-each select="Line_item">
+				<xsl:variable name="PARITY"><xsl:value-of select="QTY/MOA/PARITY"/></xsl:variable>
+				<xsl:variable name="fprice"><xsl:value-of select="MOA/MOA/GROSS_PRICE"/></xsl:variable>
+				
+				<xsl:value-of select="$fdate"/>					<xsl:text>,</xsl:text>
+				<xsl:text>"</xsl:text> <xsl:value-of select="$ANA"/>					<xsl:text>",</xsl:text>
+				<xsl:value-of select="LIN/LIN_NUMBER"/>			<xsl:text>,</xsl:text>
+				<xsl:text>"</xsl:text> <xsl:value-of select="LIN/LIN-3/EAN"/>			<xsl:text>",</xsl:text>
+				<xsl:value-of select="$PARITY"/>				<xsl:text>,</xsl:text>
+				
+				<!-- Test for Sale or Return -->
+				<xsl:choose>
+					<xsl:when test="$PARITY = '61'">
+					 	<xsl:text>0,</xsl:text>
+					 	<xsl:text>0,</xsl:text>
+					 	<xsl:value-of select="QTY/MOA/QTY"/>		<xsl:text>,</xsl:text>
+					 	<xsl:value-of select="$fprice div 100"/>			
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="QTY/MOA/QTY"/>		<xsl:text>,</xsl:text>
+						<xsl:value-of select="$fprice div 100"/>	<xsl:text>,</xsl:text>
+						<xsl:text>0,</xsl:text>
+					 	<xsl:text>0</xsl:text>
+					</xsl:otherwise>
+				</xsl:choose>
+				
+				<!-- Insert a new line -->
+				<xsl:text>&#10;</xsl:text> 
+				
+			</xsl:for-each>
+		</xsl:for-each>
+ 	</xsl:template>
+</xsl:stylesheet>
